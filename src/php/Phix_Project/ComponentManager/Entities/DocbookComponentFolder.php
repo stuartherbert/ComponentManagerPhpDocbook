@@ -48,7 +48,7 @@ namespace Phix_Project\ComponentManager\Entities;
 
 class DocbookComponentFolder extends ComponentFolder
 {
-        const LATEST_VERSION = 1;
+        const LATEST_VERSION = 2;
         const DATA_FOLDER = '@@DATA_DIR@@/ComponentManagerPhpDocbook/php-docbook';
 
         public function createComponent()
@@ -71,28 +71,6 @@ class DocbookComponentFolder extends ComponentFolder
                 $this->createTools();
 
                 // if we get here, job done
-        }
-
-        public function upgradeComponent()
-        {
-                // just make sure we're not being asked to do something
-                // that is impossible
-                if ($this->componentVersion >= self::LATEST_VERSION)
-                {
-                        throw new \Exception('Folder ' . $this->folder . ' is on version ' . $this->componentVersion . ' which is newer than known latest version ' . self::LATEST_VERSION);
-                }
-
-                // ok, let's do the upgrades
-                $thisVersion = $this->componentVersion;
-                while ($thisVersion < self::LATEST_VERSION)
-                {
-                        $method = 'upgradeFrom' . $thisVersion . 'To' . ($thisVersion + 1);
-                        \call_user_method($method, $this);
-                        $thisVersion++;
-                        $this->editBuildPropertiesVersionNumber($thisVersion);
-                }
-
-                // all done
         }
 
         protected function createFolders()
@@ -127,7 +105,7 @@ class DocbookComponentFolder extends ComponentFolder
 
         protected function createBuildFile()
         {
-                $this->copyFilesFromDataFolder(array('build.xml'));
+                $this->copyFilesFromDataFolder(array('build.xml', 'build.local.xml'));
         }
 
         protected function createBuildProperties()
@@ -156,7 +134,25 @@ class DocbookComponentFolder extends ComponentFolder
                 $this->enableExecutionOf('tools/scripts/webify.php');
                 $this->enableExecutionOf('tools/scripts/highlight.php');
                 $this->enableExecutionOf('tools/scripts/HighlightPDF.php');
-                $this->enableExecutionOf('tools/fop/fop');
-                $this->enableExecutionOf('tools/docbook-xsl/epub/bin/dbtoepub');
-        }
+	}
+
+	/**
+	 * Upgrade a php-docbook project to v2
+	 *
+	 * The changes between v1 and v2 are:
+	 *
+	 * * support for build.local.xml
+	 * * use the separately-packaged docbook tools
+	 * * use the separately-packaged fop tools
+	 */
+
+	protected function upgradeFrom1To2()
+	{
+		$this->createBuildFile();
+
+		$this->addOrUpdateBuildProperty('tools.docbook', 'docbook-xsl-1.76.1');
+		$this->addOrUpdateBuildProperty('tools.fop', 'fop-1.0');
+		$this->recursiveRmdir($this->folder . '/tools/docbook-xsl');
+		$this->recursiveRmdir($this->folder . '/tools/fop');
+	}
 }
