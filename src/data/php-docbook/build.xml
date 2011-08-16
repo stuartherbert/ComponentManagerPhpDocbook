@@ -22,19 +22,20 @@
     <echo message="  Run the validation tools to catch Docbook errors" />
     <echo message="compile" />
     <echo message="  Turn the Docbook sources into the publishable books" />
+    <echo message="publish-local" />
+    <echo message="  Publish a copy of the website to your local webserver" />
     <echo message="clean" />
     <echo message="  Remove all temporary folders created by this build file" />
+    <echo message="build-tools" />
+    <echo message="  Create / update the tools folder" />
     <echo message="" />
     <phingcall target="local-help" />
   </target>
 
   <!-- Test the Docbook sources for validation errors -->
   <target name="lint">
-    <!-- START: lint-loop -->
-    <phingcall target="lint-src">
-      <property name="lint.edition" value="1.0-en" />
-    </phingcall>
-    <!-- END: lint-loop -->
+    <!-- lint-editions is defined in build.local.xml -->
+    <phingcall target="lint-editions" />
   </target>
 
   <target name="lint-src">
@@ -59,12 +60,8 @@
     <delete dir="${project.distdir}"/>
     <mkdir dir="${project.distdir}"/>
 
-    <!-- START: compile-loop -->
-    <phingcall target="compile-src">
-      <property name="compile.edition" value="1.0-en" />
-      <property name="compile.lang" value="en" />
-    </phingcall>
-    <!-- END: compile-loop -->
+    <!-- compile-editions is defined in build.local.xml -->
+    <phingcall target="compile-editions" />
   </target>
 
   <!-- Compile a single version, single language of Docbook sources -->
@@ -88,27 +85,34 @@
     <copy file="${project.toolsdir}/docbook.css" todir="${compile.distdir}" />
 
     <!-- Create the HTML version of the docs -->
-    <exec command="xsltproc --stringparam base.dir ${compile.distdir}/ --stringparam l10n.gentext.language ${compile.lang} ${project.toolsdir}/html-chunked.xsl ${compile.srcdir}/book.xml" logoutput="true" />
-    <exec command="${project.toolsdir}/scripts/highlight.php ${compile.distdir}/" />
-    <exec command="${project.toolsdir}/scripts/webify.php build.properties ${compile.distdir} ${compile.edition}" logoutput="true" />
+    <exec command="xsltproc --stringparam base.dir ${compile.distdir}/ --stringparam l10n.gentext.language ${compile.lang} ${project.toolsdir}/html-chunked.xsl ${compile.srcdir}/book.xml" logoutput="true" checkreturn="true" />
+    <exec command="${project.toolsdir}/scripts/highlight.php ${compile.distdir}/" logoutput="true" checkreturn="true" />
+    <exec command="${project.toolsdir}/scripts/webify.php build.properties ${compile.distdir} ${compile.edition}" logoutput="true" checkreturn="true" />
 
     <!-- Create the PDF version of the docs -->
-    <exec command="xsltproc --stringparam fop1.extensions 1 --stringparam l10n.gentext.language ${compile.lang} --output ${compile.builddir}/${project.name}-book.fo ${project.toolsdir}/fo.xsl ${compile.srcdir}/book.xml" logoutput="true" />
-    <exec command="${project.toolsdir}/scripts/HighlightPDF.php ${compile.builddir}/${project.name}-book.fo" logoutput="true" />
-    <exec command="${project.toolsdir}/fop/fop -fo ${compile.builddir}/${project.name}-book.fo -pdf ${compile.distdir}/${project.name}-book-${compile.edition}.pdf" logoutput="true" />
+    <exec command="xsltproc --stringparam fop1.extensions 1 --stringparam l10n.gentext.language ${compile.lang} --output ${compile.builddir}/${project.name}-book.fo ${project.toolsdir}/fo.xsl ${compile.srcdir}/book.xml" logoutput="true" checkreturn="true" />
+    <exec command="${project.toolsdir}/scripts/HighlightPDF.php ${compile.builddir}/${project.name}-book.fo" logoutput="true" checkreturn="true" />
+    <exec command="${project.toolsdir}/fop/fop -fo ${compile.builddir}/${project.name}-book.fo -pdf ${compile.distdir}/${project.name}-book-${compile.edition}.pdf" logoutput="true" checkreturn="true" />
 
     <!-- Create the EPUB version of the docs -->
-    <exec command="${project.toolsdir}/docbook-xsl/epub/bin/dbtoepub -o ${compile.distdir}/${project.name}-book-${compile.edition}.epub ${compile.srcdir}/book.xml" logoutput="true" />
+    <exec command="${project.toolsdir}/docbook-xsl/epub/bin/dbtoepub -o ${compile.distdir}/${project.name}-book-${compile.edition}.epub ${compile.srcdir}/book.xml" logoutput="true" checkreturn="true" />
 
     <!-- Tidy up after ourselves -->
     <delete file="${compile.builddir}/${project.name}-book.fo"/>
     <move file="figures" todir="${compile.distdir}" />
   </target>
 
+  <!-- Setup the tools folder for this project -->
+  <target name="build-tools">
+    <exec command="phix php-docbook:build-tools ${project.toolsdir}" logoutput="true" checkreturn="true" />
+  </target>
+
   <!-- Install a copy of the website locally for testing -->
-  <target name="install.local" depends="compile">
-    <copy todir="${prefix}">
-      <fileset refid="srcfiles" />
+  <target name="publish-local" depends="compile">
+    <copy todir="${www.local}">
+      <fileset dir="${compile.distdir}">
+        <include name="**/**"/>
+      </fileset>
     </copy>
   </target>
 

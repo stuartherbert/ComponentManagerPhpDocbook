@@ -3,3 +3,21 @@
   <echo message="This component has no local build targets." />
 </target>
 </project>
+
+<!-- you must update this for each edition of the manual -->
+<target name="compile-editions">
+  <phingcall target="compile-src">
+    <property name="compile.edition" value="1.0-en" />
+    <property name="compile.lang" value="en" />
+  </phingcall>
+  <!-- add any other editions here -->
+</target>
+
+<target name="lint-editions">
+  <phingcall target="lint-src">
+    <property name="lint.edition" value="1.0-en" />
+  </phingcall>
+  <!-- add any other editions here -->
+</target>
+
+<!-- vim: set tabstop=2 shiftwidth=2 expandtab: -->
