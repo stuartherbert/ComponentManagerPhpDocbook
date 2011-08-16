@@ -12,6 +12,8 @@
   <property name="project.builddir" value="${project.basedir}/build" override="true" />
   <property name="project.distdir" value="${project.basedir}/dist" override="true" />
 
+  <import file="build.local.xml"/>
+
   <!-- Tell the user what this build file supports -->
   <target name="help">
     <echo message="${project.name} ${project.version}: build.xml targets:" />
@@ -22,6 +24,8 @@
     <echo message="  Turn the Docbook sources into the publishable books" />
     <echo message="clean" />
     <echo message="  Remove all temporary folders created by this build file" />
+    <echo message="" />
+    <phingcall target="local-help" />
   </target>
 
   <!-- Test the Docbook sources for validation errors -->
