@@ -48,8 +48,11 @@ namespace Phix_Project\ComponentManager\Entities;
 
 class DocbookComponentFolder extends ComponentFolder
 {
+        const COMPONENT_TYPE = 'php-docbook';
         const LATEST_VERSION = 2;
         const DATA_FOLDER = '@@DATA_DIR@@/ComponentManagerPhpDocbook/php-docbook';
+        const DOCBOOK_FOLDER = '@@DATA_DIR@@/DocbookTools/docbook-xsl-1.76.1';
+        const FOP_FOLDER = '@@DATA_DIR@@/FopTools/fop-1.0';
 
         public function createComponent()
         {
@@ -150,9 +153,16 @@ class DocbookComponentFolder extends ComponentFolder
 	{
 		$this->createBuildFile();
 
-		$this->addOrUpdateBuildProperty('tools.docbook', 'docbook-xsl-1.76.1');
-		$this->addOrUpdateBuildProperty('tools.fop', 'fop-1.0');
+		$this->setBuildProperty('tools.docbook', 'docbook-xsl-1.76.1');
+		$this->setBuildProperty('tools.fop', 'fop-1.0');
 		$this->recursiveRmdir($this->folder . '/tools/docbook-xsl');
 		$this->recursiveRmdir($this->folder . '/tools/fop');
+                
+                $this->createScmIgnoreFiles();
+                
+                // $this->copyFolders(self::DOCBOOK_FOLDER, '/tools/docbook-xsl');
+                // $this->copyFolders(self::FOP_FOLDER, '/tools/fop');
+                // $this->enableExecutionOf('tools/fop/fop');
+                // $this->enableExecutionOf('tools/docbook-xsl/epub/bin/dbtoepub');
 	}
 }
