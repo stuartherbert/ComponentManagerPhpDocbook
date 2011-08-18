@@ -4,3 +4,5 @@ dist
 nbproject
 review
 vendor
+tools/docbook-xsl
+tools/fop

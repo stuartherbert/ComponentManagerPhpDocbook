@@ -6,3 +6,5 @@ nbproject
 review
 tmp
 vendor
+tools/docbook-xsl
+tools/fop
